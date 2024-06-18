@@ -1,0 +1,14 @@
+[Unit]
+Description=Command Monitor Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/command-monitor
+Restart=always
+User=nobody
+Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+WorkingDirectory=/usr/local/bin
+
+[Install]
+WantedBy=multi-user.target

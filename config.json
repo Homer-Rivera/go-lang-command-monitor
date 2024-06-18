@@ -1,0 +1,7 @@
+{
+  "command": "echo Hello, World!",
+  "match_type": "exact",
+  "match_value": "Hello, World!",
+  "port": "8080",
+  "ConfigFilePath": "config.json"
+}
