@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "encoding/xml"
     "fmt"
+    "html/template"
     "io/ioutil"
     "log"
     "net/http"
@@ -38,10 +39,10 @@ func (c *Config) Save() error {
 }
 
 type Result struct {
-    Success   bool   `json:"success"`
-    Output    string `json:"output"`
-    Command   string `json:"command"`
-    MatchType string `json:"match_type"`
+    Success    bool   `json:"success"`
+    Output     string `json:"output"`
+    Command    string `json:"command"`
+    MatchType  string `json:"match_type"`
     MatchValue string `json:"match_value"`
 }
 
@@ -55,10 +56,10 @@ func checkHandler(w http.ResponseWriter, r *http.Request, config *Config, respon
 
     success := checkOutput(string(output), config.MatchType, config.MatchValue)
     result := Result{
-        Success:   success,
-        Output:    string(output),
-        Command:   config.Command,
-        MatchType: config.MatchType,
+        Success:    success,
+        Output:     string(output),
+        Command:    config.Command,
+        MatchType:  config.MatchType,
         MatchValue: config.MatchValue,
     }
 
@@ -114,8 +115,7 @@ func configureHandler(w http.ResponseWriter, r *http.Request, config *Config) {
         }
     }
 
-    w.Header().Set("Content-Type", "text/html")
-    fmt.Fprintf(w, `
+    tmpl := template.Must(template.New("config").Parse(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -128,37 +128,33 @@ func configureHandler(w http.ResponseWriter, r *http.Request, config *Config) {
     <form method="POST">
         <div class="form-group">
             <label for="command">Command</label>
-            <input type="text" class="form-control" id="command" name="command" value="%s">
+            <input type="text" class="form-control" id="command" name="command" value="{{.Command}}">
         </div>
         <div class="form-group">
             <label for="match_type">Match Type</label>
             <select class="form-control" id="match_type" name="match_type">
-                <option value="exact" %s>Exact</option>
-                <option value="regex" %s>Regex</option>
-                <option value="integer" %s>Integer</option>
+                <option value="exact" {{if eq .MatchType "exact"}}selected{{end}}>Exact</option>
+                <option value="regex" {{if eq .MatchType "regex"}}selected{{end}}>Regex</option>
+                <option value="integer" {{if eq .MatchType "integer"}}selected{{end}}>Integer</option>
             </select>
         </div>
         <div class="form-group">
             <label for="match_value">Match Value</label>
-            <input type="text" class="form-control" id="match_value" name="match_value" value="%s">
+            <input type="text" class="form-control" id="match_value" name="match_value" value="{{.MatchValue}}">
         </div>
         <div class="form-group">
             <label for="port">Port</label>
-            <input type="text" class="form-control" id="port" name="port" value="%s">
+            <input type="text" class="form-control" id="port" name="port" value="{{.Port}}">
         </div>
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
 </div>
 </body>
 </html>
-`, config.Command, selectOption(config.MatchType, "exact"), selectOption(config.MatchType, "regex"), selectOption(config.MatchType, "integer"), config.MatchValue, config.Port)
-}
+`))
 
-func selectOption(current, option string) string {
-    if current == option {
-        return "selected"
-    }
-    return ""
+    w.Header().Set("Content-Type", "text/html")
+    tmpl.Execute(w, config)
 }
 
 func main() {
