@@ -143,7 +143,7 @@ func configureHandler(w http.ResponseWriter, r *http.Request, config *Config) {
             <input type="text" class="form-control" id="match_value" name="match_value" value="{{.MatchValue}}">
         </div>
         <div class="form-group">
-            <label for="port">Port</label>
+            <label for="port">HTTP Listen Port</label>
             <input type="text" class="form-control" id="port" name="port" value="{{.Port}}">
         </div>
         <button type="submit" class="btn btn-primary">Save</button>
